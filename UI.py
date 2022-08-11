@@ -1,11 +1,23 @@
 from PhotoViewer import *
 
 class Window(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, path=None):
         super(Window, self).__init__()
 
         self.setWindowIcon(QtGui.QIcon("./assets/appIcon.png"))
-        self.setWindowTitle("Simplistic Image Viewer")
+        self.setWindowTitle("Simplistic Windows Image Viewer")
+
+        self.givenPath = None
+        
+        try:
+            self.givenPath = path[1]
+            rev = self.givenPath[::-1]
+            self.givenPath=self.givenPath[:len(rev)-rev.index('\\')-1]
+
+            print(self.givenPath)
+            print(os.getcwd())
+        except:
+            pass
 
         # self.menuBar = QMenuBar()
         # self.setMenuBar(self.menuBar)
@@ -20,31 +32,60 @@ class Window(QtWidgets.QWidget):
         # self.actionOpen_Folder.triggered.connect(self.openFolder)
 
         self.graphicsView = PhotoViewer(self)
+
+        self.setStyleSheet("background-color: white;")
+
         self.nextButton = QtWidgets.QToolButton(self)
-        self.nextButton.setText("Next")
+        self.nextButton.setText("→")
         self.nextButton.clicked.connect(self.next_image)
+        self.nextButton.setStyleSheet("border-radius: 5px; \
+                                       border : 1px solid black; \
+                                       width: 40px; \
+                                       height: 15px; \
+                                       font-size: 20px; \
+                                       padding-top:-5px; \
+                                       Text-align: center")
 
         self.prevButton = QtWidgets.QToolButton(self)
-        self.prevButton.setText("Prev")
+        self.prevButton.setText("←")
         self.prevButton.clicked.connect(self.prev_image)
+        self.prevButton.setStyleSheet("border-radius: 5px; \
+                                       border : 1px solid black; \
+                                       width: 40px; \
+                                       height: 15px; \
+                                       font-size: 20px; \
+                                       padding-top:-5px; \
+                                       Text-align: center")
 
         self.zoomOutButton = QtWidgets.QToolButton(self)
         # self.zoomOutButton.setText("Zoom out")
         self.zoomOutButton.clicked.connect(self.on_zoom_out)
         self.zoomOutButton.setIcon(QtGui.QIcon("./assets/zoom_out.png"))
+        self.zoomOutButton.setStyleSheet("margin-left:10px; \
+                                          border-radius: 5px; \
+                                          border : 1px solid black;")
 
         self.zoomInButton = QtWidgets.QToolButton(self)
         # self.zoomInButton.setText("Zoom in")
         self.zoomInButton.clicked.connect(self.on_zoom_in)
         self.zoomInButton.setIcon(QtGui.QIcon("./assets/zoom_in.png"))
+        self.zoomInButton.setStyleSheet("margin-left:3px; \
+                                         border-radius: 5px; \
+                                         border : 1px solid black;")
 
         self.openImageButton = QtWidgets.QToolButton(self)
         self.openImageButton.setText("Open Image")
         self.openImageButton.clicked.connect(self.openImg)
+        self.openImageButton.setStyleSheet("margin-right: 3px; \
+                                            border-radius: 5px; \
+                                            border : 1px solid black;")
 
         self.openFolderButton = QtWidgets.QToolButton(self)
         self.openFolderButton.setText("Open Folder")
         self.openFolderButton.clicked.connect(self.openFolder)
+        self.openFolderButton.setStyleSheet("margin-right: 10px; \
+                                             border-radius: 5px; \
+                                             border : 1px solid black;")
 
         VBlayout = QtWidgets.QVBoxLayout(self)
         VBlayout.addWidget(self.graphicsView)
@@ -75,11 +116,18 @@ class Window(QtWidgets.QWidget):
         VBlayout.addLayout(HBlayoutMain)
 
         self.current_file = None
-        self.file_list = [os.getcwd() + "/" + file for file in os.listdir(os.getcwd())
-                          if file.endswith(".png") or file.endswith(".jpg") or file.endswith("jpeg")]
-        self.file_counter = len(self.file_list) -1 if len(self.file_list) > 0 else None
 
-        self.next_image()
+        if self.givenPath is not None:
+            self.file_list = [self.givenPath + "/" + file for file in os.listdir(self.givenPath)
+                          if file.endswith(".png") or file.endswith(".jpg") or file.endswith("jpeg")]
+            self.file_counter = len(self.file_list) -1 if len(self.file_list) > 0 else None
+            self.current_file = path[1]
+            self.displayImage(path[1])
+        else:
+            self.file_list = [os.getcwd() + "/" + file for file in os.listdir(os.getcwd())
+                          if file.endswith(".png") or file.endswith(".jpg") or file.endswith("jpeg")]
+            self.file_counter = len(self.file_list) -1 if len(self.file_list) > 0 else None
+            self.next_image()
 
         QtWidgets.QShortcut(QKeySequence(QtCore.Qt.Key_Right),self,activated=self.next_image)
         QtWidgets.QShortcut(QKeySequence(QtCore.Qt.Key_Left),self,activated=self.prev_image)
@@ -101,21 +149,21 @@ class Window(QtWidgets.QWidget):
                                     if file.endswith(".png") or file.endswith(".jpg") or file.endswith("jpeg")]
 
     def openFolder(self):
-        try:
-            directory = str(QtWidgets.QFileDialog.getExistingDirectory(
-                self, "Select Directory"))
-            self.file_list = [directory + "/" + file for file in os.listdir(directory) if file.endswith(".png") or
-                            file.endswith(".jpg") or
-                            file.endswith("jpeg")]
-            self.file_counter = 0
-            self.current_file = self.file_list[self.file_counter]
-            self.displayImage(self.current_file)
-        except:
-            directory = ""
-            self.file_list = []
-            self.file_counter = None
-            self.pixmap = QtGui.QPixmap()
-            self.graphicsView.displayPicture(self.pixmap)
+            try:
+                directory = str(QtWidgets.QFileDialog.getExistingDirectory(
+                    self, "Select Directory"))
+                self.file_list = [directory + "/" + file for file in os.listdir(directory) if file.endswith(".png") or
+                                file.endswith(".jpg") or
+                                file.endswith("jpeg")]
+                self.file_counter = 0
+                self.current_file = self.file_list[self.file_counter]
+                self.displayImage(self.current_file)
+            except:
+                directory = ""
+                self.file_list = []
+                self.file_counter = None
+                self.pixmap = QtGui.QPixmap()
+                self.graphicsView.displayPicture(self.pixmap)
 
     def next_image(self):
         if self.file_counter is not None:

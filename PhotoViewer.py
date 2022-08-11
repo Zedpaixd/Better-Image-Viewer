@@ -98,3 +98,6 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         if self.gvPhoto.isUnderMouse():
             self.photoClicked.emit(self.mapToScene(event.pos()).toPoint())
         super(PhotoViewer, self).mousePressEvent(event)
+
+    def resizeEvent(self, event):
+        self.fitInView()
